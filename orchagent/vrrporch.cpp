@@ -75,7 +75,20 @@ bool VrrpOrch::addOperation(const Request& request)
             return true;
         }
     }
-    gPortsOrch->getPort(request.getKeyString(0), port);
+    if (!gPortsOrch->getPort(request.getKeyString(0), port))
+    {
+        SWSS_LOG_NOTICE("Failed to get port for %s, will retry", request.getKeyString(0).c_str());
+        return false;
+    }
+
+    /* The parent RIF must exist before creating a virtual RIF.
+     * IntfsOrch creates the parent RIF and sets port.m_rif_id.
+     * If it hasn't been created yet, retry later. */
+    if (!port.m_rif_id)
+    {
+        SWSS_LOG_NOTICE("Router interface not ready for %s, will retry", request.getKeyString(0).c_str());
+        return false;
+    }
 
     attr.id = SAI_ROUTER_INTERFACE_ATTR_TYPE;
     switch(port.m_type)
