@@ -119,5 +119,5 @@ int main(int argc, char **argv)
         SWSS_LOG_ERROR("Runtime error: %s", e.what());
     }
 
-    return -1;
+    return 0;
 }
