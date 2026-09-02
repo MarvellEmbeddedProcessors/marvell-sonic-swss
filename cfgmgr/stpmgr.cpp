@@ -42,13 +42,13 @@ void preventPvstPduFlooding()
     }
 }
 
-void restorePvstPduFlooding()
+void restorePvstPduFlooding( bool init)
 {
     std::string res;
     const std::string cmd =
           std::string("nft delete table bridge ") + pvstNftBridgeTable;
     int ret = swss::exec(cmd, res);
-    if ( ret != 0 ) {
+    if ( ( ret != 0 ) && ( !init ) ) {
         SWSS_LOG_ERROR( "Failed to remove nft rule which prevented PVST PDU flooding - %d", ret );
     }
 }
@@ -80,7 +80,7 @@ StpMgr::StpMgr(DBConnector *confDb, DBConnector *applDb, DBConnector *statDb,
     // Initialize all VLANs to Invalid instance
     fill_n(m_vlanInstMap, MAX_VLANS, INVALID_INSTANCE);
 
-    restorePvstPduFlooding();
+    restorePvstPduFlooding( true );
 }
 
 void StpMgr::doTask(Consumer &consumer)
@@ -140,7 +140,7 @@ void StpMgr::doStpGlobalTask(Consumer &consumer)
                 {
                     if (fvValue(i) == "pvst")
                     {
-                        if (l2ProtoEnabled == L2_NONE)
+                        if (l2ProtoEnabled != L2_PVSTP)
                         {
                             preventPvstPduFlooding();
                             l2ProtoEnabled = L2_PVSTP;
@@ -185,7 +185,7 @@ void StpMgr::doStpGlobalTask(Consumer &consumer)
 
             if (l2ProtoEnabled == L2_PVSTP)
             {
-                restorePvstPduFlooding();
+                restorePvstPduFlooding( false );
             }
             l2ProtoEnabled = L2_NONE;
         }
