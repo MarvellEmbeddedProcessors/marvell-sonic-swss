@@ -393,7 +393,7 @@ void StpMgr::doStpMstGlobalTask(Consumer &consumer)
                 }
                 else if (fvField(i) == "revision")
                 {
-                    msg.revision_number = static_cast<uint32_t>(stoi(fvValue(i)));
+                    msg.revision_number = static_cast<uint16_t>(stoi(fvValue(i)));
                 }
                 else if (fvField(i) == "forward_delay")
                 {
