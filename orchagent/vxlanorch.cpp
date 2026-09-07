@@ -536,6 +536,11 @@ VxlanTunnel::VxlanTunnel(string name, IpAddress srcIp, IpAddress dstIp, tunnel_c
        vtep_ptr = tunnel_orch->getVTEP(srcIp);
        tunnel_orch->addRemoveStateTableEntry(name,srcIp, dstIp,
                                            src, true);
+   } else {
+       if (tunnel_orch->isVTEPExists(srcIp)) {
+           vtep_ptr = tunnel_orch->getVTEP(srcIp);
+           SWSS_LOG_NOTICE("RDH: Got vtep_ptr from srcIp");
+       }
    }
 }
 
@@ -900,8 +905,9 @@ bool VxlanTunnel::createTunnelHw(uint8_t mapper_list, tunnel_map_use_t map_src,
         {
             swss::copy(ipd, dst_ip_);
             ip = &ipd;
-            p2p = (src_creation_ == TNL_CREATION_SRC_EVPN)? true:false;
-            SWSS_LOG_WARN("creation src = %d",src_creation_);
+            p2p = tunnel_orch->isDipTunnelsSupported();
+            SWSS_LOG_NOTICE("Tunnel %s creation src = %d, p2p = %d",
+                            tunnel_name_.c_str(), src_creation_, p2p);
         }
 
         ids_.tunnel_id = create_tunnel(&ids_, &ips, ip, gUnderlayIfId, p2p, decap_ttl_mode_, encap_ttl);
