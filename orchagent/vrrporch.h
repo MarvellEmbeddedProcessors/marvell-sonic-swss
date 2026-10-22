@@ -74,6 +74,7 @@ public:
     VrrpOrch(DBConnector *db, const std::string& tableName) : Orch2(db, tableName, request_) { }
 
 private:
+    bool warmRestartCheck() const override;
     virtual bool addOperation(const Request& request);
     virtual bool delOperation(const Request& request);
     bool hasSameIpAddr(const string &alias,const IpPrefix &vip_prefix);

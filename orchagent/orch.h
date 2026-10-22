@@ -325,6 +325,8 @@ public:
      */
     virtual void onWarmBootEnd() { }
 
+    virtual bool warmRestartCheck() const { return true; }
+
     void dumpPendingTasks(std::vector<std::string> &ts);
     
     void createRetryCache(const std::string &executorName);

@@ -1285,6 +1285,16 @@ bool OrchDaemon::warmRestartCheck()
         }
     }
 
+    for (auto orch : m_orchList)
+    {
+        if (!orch->warmRestartCheck())
+        {
+            data = "NOT_READY";
+            ret = false;
+            break;
+        }
+    }
+
     SWSS_LOG_NOTICE("Restart check result: %s", data.c_str());
     gSwitchOrch->restartCheckReply(op,  data, values);
     return ret;

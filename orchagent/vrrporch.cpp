@@ -29,6 +29,18 @@ bool VrrpOrch::hasSameIpAddr(const string &alias,const IpPrefix &vip_prefix)
     return false;
 }
 
+bool VrrpOrch::warmRestartCheck() const
+{
+    if (!vrrp_table_.empty())
+    {
+        SWSS_LOG_ERROR("VRRP Warmboot cannot proceed with %ld entries on dataplane",
+                       vrrp_table_.size());
+        return false;
+    }
+
+    return true;
+}
+
 bool VrrpOrch::addOperation(const Request& request)
 {
     SWSS_LOG_ENTER();
