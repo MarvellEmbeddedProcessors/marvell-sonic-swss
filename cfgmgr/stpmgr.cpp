@@ -1133,14 +1133,18 @@ void StpMgr::doStpMstInstTask(Consumer &consumer)
             updateVlanInstanceMap(instance_id, vlan_ids, true);
 
             uint32_t vlan_count = static_cast<uint32_t>(vlan_ids.size());
-            len = sizeof(STP_MST_INST_CONFIG_MSG) + static_cast<uint32_t>(vlan_count * sizeof(VLAN_LIST));
+            uint32_t inst_len = sizeof(STP_MST_INST_CONFIG_MSG) + static_cast<uint32_t>(vlan_count * sizeof(VLAN_LIST));
+            len = sizeof(STP_MST_INSTANCE_CONFIG_MSG) + inst_len;
 
-            msg = (STP_MST_INST_CONFIG_MSG *)calloc(1, len);
-            if (!msg)
+            // stpd reads STP_MST_INSTANCE_CONFIG_MSG: a count, then the instance records.
+            STP_MST_INSTANCE_CONFIG_MSG *wrap = (STP_MST_INSTANCE_CONFIG_MSG *)calloc(1, len);
+            if (!wrap)
             {
-                SWSS_LOG_ERROR("Memory allocation failed for STP_MST_INST_CONFIG_MSG");
+                SWSS_LOG_ERROR("Memory allocation failed for STP_MST_INSTANCE_CONFIG_MSG");
                 return;
             }
+            wrap->mst_count = 1;
+            msg = (STP_MST_INST_CONFIG_MSG *)wrap->mst_list;
 
             msg->opcode = STP_SET_COMMAND;
             msg->mst_id = instance_id;
@@ -1154,25 +1158,30 @@ void StpMgr::doStpMstInstTask(Consumer &consumer)
             {
                 vlan_attr[i].vlan_id = vlan_ids[i];
             }
+            sendMsgStpd(STP_MST_INST_CONFIG, len, (void *)wrap);
+            free(wrap);
+            msg = NULL;
         }
         else if (op == DEL_COMMAND)
         {
-            len = sizeof(STP_MST_INST_CONFIG_MSG);
-            msg = (STP_MST_INST_CONFIG_MSG *)calloc(1, len);
-            if (!msg)
+            uint32_t inst_len = sizeof(STP_MST_INST_CONFIG_MSG);
+            len = sizeof(STP_MST_INSTANCE_CONFIG_MSG) + inst_len;
+            STP_MST_INSTANCE_CONFIG_MSG *wrap = (STP_MST_INSTANCE_CONFIG_MSG *)calloc(1, len);
+            if (!wrap)
             {
                 SWSS_LOG_ERROR("Memory allocation failed for MST_INST_CONFIG_MSG");
                 return;
             }
+            wrap->mst_count = 1;
+            msg = (STP_MST_INST_CONFIG_MSG *)wrap->mst_list;
 
             msg->opcode = STP_DEL_COMMAND;
             msg->mst_id = instance_id;
             updateVlanInstanceMap(instance_id, vlan_ids, false);
+            sendMsgStpd(STP_MST_INST_CONFIG, len, (void *)wrap);
+            free(wrap);
+            msg = NULL;
         }
-
-        sendMsgStpd(STP_MST_INST_CONFIG, len, (void *)msg);
-        if (msg)
-            free(msg);
 
         it = consumer.m_toSync.erase(it);
     }
