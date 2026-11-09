@@ -791,7 +791,30 @@ void StpMgr::doVlanMemUpdateTask(Consumer &consumer)
 
             strncpy(msg.intf_name, intfName.c_str(), IFNAMSIZ-1);
 
-            sendMsgStpd(STP_VLAN_MEM_CONFIG, sizeof(msg), (void *)&msg);
+            if (l2ProtoEnabled == L2_MSTP)
+            {
+                uint32_t map_len = sizeof(STP_MST_VLAN_PORT_MAP) + sizeof(PORT_LIST);
+                STP_MST_VLAN_PORT_MAP *vlan_port_map = (STP_MST_VLAN_PORT_MAP *)calloc(1, map_len);
+
+                if (vlan_port_map)
+                {
+                    vlan_port_map->vlan_id = static_cast<uint16_t>(vlan_id);
+                    vlan_port_map->port_count = 1;
+                    vlan_port_map->add = (op == SET_COMMAND) ? 1 : 0;
+                    strncpy(vlan_port_map->port_list[0].intf_name, intfName.c_str(), IFNAMSIZ - 1);
+                    vlan_port_map->port_list[0].tagging_mode = tagging_mode;
+                    sendMsgStpd(STP_MST_VLAN_PORT_LIST_CONFIG, map_len, (void *)vlan_port_map);
+                    free(vlan_port_map);
+                }
+                else
+                {
+                    SWSS_LOG_ERROR("Memory allocation failed for MST vlan port map");
+                }
+            }
+            else
+            {
+                sendMsgStpd(STP_VLAN_MEM_CONFIG, sizeof(msg), (void *)&msg);
+            }
         }
 
         it = consumer.m_toSync.erase(it);
