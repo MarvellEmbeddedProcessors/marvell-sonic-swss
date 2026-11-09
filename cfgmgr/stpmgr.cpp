@@ -637,7 +637,22 @@ void StpMgr::processStpPortAttr(const string op,
             }
             else if (field== "link_type" && l2ProtoEnabled == L2_MSTP)
             {
-                msg->link_type = static_cast<LinkType>(stoi(field.c_str()));
+                if (value == "auto")
+                {
+                    msg->link_type = LinkType::AUTO;
+                }
+                else if (value == "p2p")
+                {
+                    msg->link_type = LinkType::POINT_TO_POINT;
+                }
+                else if (value == "shared")
+                {
+                    msg->link_type = LinkType::SHARED;
+                }
+                else
+                {
+                    SWSS_LOG_ERROR("Invalid link_type %s for interface %s", value.c_str(), intfName.c_str());
+                }
             }
         }
     }
