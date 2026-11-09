@@ -1236,7 +1236,14 @@ void StpMgr::doStpMstInstPortTask(Consumer &consumer)
         string key = kfvKey(t);
         string op = kfvOp(t);
 
-        string mstKey = key.substr(9);//Remove INSTANCE keyword
+        const string mstPortPrefix = "MST_INSTANCE|";
+        if (key.compare(0, mstPortPrefix.size(), mstPortPrefix) != 0)
+        {
+            SWSS_LOG_ERROR("Invalid STP_MST_PORT key %s", key.c_str());
+            it = consumer.m_toSync.erase(it);
+            continue;
+        }
+        string mstKey = key.substr(mstPortPrefix.size());
         size_t found = mstKey.find(CONFIGDB_KEY_SEPARATOR);
 
         uint16_t mst_id;
