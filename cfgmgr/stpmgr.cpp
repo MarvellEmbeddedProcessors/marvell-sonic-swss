@@ -641,7 +641,7 @@ void StpMgr::processStpPortAttr(const string op,
                 {
                     msg->link_type = LinkType::AUTO;
                 }
-                else if (value == "p2p")
+                else if (value == "point-to-point")
                 {
                     msg->link_type = LinkType::POINT_TO_POINT;
                 }
@@ -652,6 +652,7 @@ void StpMgr::processStpPortAttr(const string op,
                 else
                 {
                     SWSS_LOG_ERROR("Invalid link_type %s for interface %s", value.c_str(), intfName.c_str());
+		    return;
                 }
             }
         }
@@ -800,6 +801,7 @@ void StpMgr::doVlanMemUpdateTask(Consumer &consumer)
                 {
                     vlan_port_map->vlan_id = static_cast<uint16_t>(vlan_id);
                     vlan_port_map->port_count = 1;
+                    vlan_port_map->stp_mode = L2_MSTP;
                     vlan_port_map->add = (op == SET_COMMAND) ? 1 : 0;
                     strncpy(vlan_port_map->port_list[0].intf_name, intfName.c_str(), IFNAMSIZ - 1);
                     vlan_port_map->port_list[0].tagging_mode = tagging_mode;
